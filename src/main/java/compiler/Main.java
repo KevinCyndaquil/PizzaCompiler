@@ -29,13 +29,21 @@ public class Main {
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
             LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(reader);
             var tokens = lexicalAnalyzer.analyze();
+
+            System.out.println("----TOKENS----");
+            tokens.forEach(System.out::println);
+
             Parser parser = new Parser(tokens);
-            //System.out.println(parser.parse());
-            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(parser.parse());
-            semanticAnalyzer.analyze();
+            var programNode = parser.parse();
+
+            System.out.println("\n\n----PROGRAM ASTNode----");
+            System.out.println(programNode);
+
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(programNode);
+            semanticAnalyzer.analyze(); //This is still in development
 
         } catch (FileNotFoundException e) {
-            throw new RuntimeException("Pizza file %s could not be found".formatted(path));
+            throw new RuntimeException("Pizza file (.pf) path='%s' could not be found".formatted(path));
         } catch (IOException e) {
             throw new RuntimeException("File %s could not be access".formatted(path));
         }

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ASTNode {
-    @Getter protected String value;
+    @Getter protected Object value;
     @Getter protected final @NotNull CPoint position;
 
     @Getter protected final @NotNull Expressions type;
@@ -36,23 +36,6 @@ public class ASTNode {
         return children;
     }
 
-    public @Unmodifiable List<ASTNode> childrenAsSequence() {
-        if (children.isEmpty()) return null;
-
-        List<ASTNode> sequence = new ArrayList<>();
-        List<ASTNode> currentChildren = children;
-        ASTNode current = children.get(0);
-        int i = 0;
-
-        while(current != null) {
-            sequence.add(current);
-            current = currentChildren.get(i++);
-
-        }
-
-        return sequence;
-    }
-
     protected void add(ASTNode node) {
         children.add(node);
         node.father = this;
@@ -68,6 +51,18 @@ public class ASTNode {
         return children.stream()
                 .flatMap(c -> c.find(type).stream())
                 .toList();
+    }
+
+    public @NotNull ASTNode left() throws EmptyASTException {
+        if (children.isEmpty())
+            throw new EmptyASTException("There is not a left(index: 0) value in children");
+        return children.get(0);
+    }
+
+    public @NotNull ASTNode right() throws EmptyASTException {
+        if (children.size() < 2)
+            throw new EmptyASTException("There is not a right(index: 1) value in children");
+        return children.get(1);
     }
 
     private @NotNull String formatNode(int depth) {
@@ -88,5 +83,11 @@ public class ASTNode {
     @Override
     public String toString() {
         return formatNode(0);
+    }
+
+    public static class EmptyASTException extends RuntimeException {
+        public EmptyASTException(String message) {
+            super(message);
+        }
     }
 }

@@ -35,6 +35,7 @@ public class LexicalAnalyzer {
 
     public LexicalAnalyzer(@NotNull BufferedReader reader) throws IOException {
         for(String line = reader.readLine(); line != null; line = reader.readLine()) {
+            if (line.startsWith("//")) continue;
             code.add(line);
         }
     }

@@ -3,14 +3,12 @@ package compiler.parser;
 import compiler.lexical.Lexemes;
 import compiler.lexical.Token;
 import compiler.util.CPoint;
-import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
 
-@Data
 public class Parser {
     private final List<Token> tokens;
     private int nextTokenPosition;
@@ -83,7 +81,7 @@ public class Parser {
         expected(Lexemes.OPEN_BRACE);
 
         do {
-            identifierNode.add(parseIngredientLiteralStatement());
+            identifierNode.add(parsePizzaIngredients());
             expected(Lexemes.SEMICOLON);
         } while (!match(Lexemes.CLOSE_BRACE));
 
@@ -99,7 +97,7 @@ public class Parser {
         expected(Lexemes.SINGLE_QUOTE);
 
         if (match(Lexemes.SINGLE_QUOTE))
-            urlNode.value = urlNode.value + parseUrlLiteral().value;
+            urlNode.value = urlNode.value + parseUrlLiteral().value.toString();
         return urlNode;
     }
 
@@ -111,44 +109,44 @@ public class Parser {
         makeNode.add(sizeNode);
 
         expected(Lexemes.PIZZA);
-        makeNode.add(parsePizzaStatement());
+        makeNode.add(parsePizza());
 
         expected(Lexemes.SEMICOLON);
 
         return makeNode;
     }
 
-    private @NotNull ASTNode parsePizzaStatement() {
+    private @NotNull ASTNode parsePizza() {
         ASTNode pizzaNode = new ASTNode(Expressions.PIZZA, currentCodePosition);
 
         Token addOrOfToken = expected(Lexemes.ADD, Lexemes.OF);
         switch (addOrOfToken.type()) {
-            case ADD -> pizzaNode.add(parseAddStatement());
-            case OF -> pizzaNode.add(parseOfStatement());
+            case ADD -> pizzaNode.add(parseAdd());
+            case OF -> pizzaNode.add(parseOf());
         }
 
         if (addOrOfToken.is(Lexemes.OF))
             if (match(Lexemes.ADD)) {
                 nextToken();
-                pizzaNode.add(parseAddStatement());
+                pizzaNode.add(parseAdd());
             }
 
         return pizzaNode;
     }
 
-    private @NotNull ASTNode parseAddStatement() {
+    private @NotNull ASTNode parseAdd() {
         ASTNode addNode = new ASTNode(Expressions.ADD, currentCodePosition);
 
         do {
             if (match(Lexemes.AND)) nextTokenPosition++;
 
-            addNode.add(parseIngredientLiteralStatement());
+            addNode.add(parsePizzaIngredients());
         } while (match(Lexemes.AND));
 
         return addNode;
     }
 
-    private @NotNull ASTNode parseIngredientLiteralStatement() {
+    private @NotNull ASTNode parsePizzaIngredients() {
         Token literalToken = expected(Lexemes.LITERAL);
         ASTNode ingredientLiteralNode = new ASTNode(
                 Expressions.INGREDIENT_VAR,
@@ -156,13 +154,13 @@ public class Parser {
                 currentCodePosition);
 
         expected(Lexemes.OPEN_PARENTHESIS);
-        ingredientLiteralNode.add(parseOperation());
+        ingredientLiteralNode.add(parsePlusminusOperation());
         expected(Lexemes.CLOSE_PARENTHESIS);
 
         return ingredientLiteralNode;
     }
 
-    private @NotNull ASTNode parseOfStatement() {
+    private @NotNull ASTNode parseOf() {
         ASTNode ofNode = new ASTNode(
                 Expressions.OF,
                 currentCodePosition);
@@ -179,28 +177,55 @@ public class Parser {
         return ofNode;
     }
 
-    private @NotNull ASTNode parseOperation() {
-        Token numToken = expected(Lexemes.NUMBER);
-        ASTNode numNode = new ASTNode(
+    /**
+     * This method parse first multiplication and division operations.
+     * If there is not '*' or '/' lexeme after the number lexeme, then it returns that number
+     * node read, else it creates the multiplication or division node checking if the second
+     * lexeme could be a multiplication or division too.
+     * @return number node or mul or div node.
+     */
+    private @NotNull ASTNode parseMuldivOperation() {
+        Token numberToken = expected(Lexemes.NUMBER);
+        ASTNode numberNode = new ASTNode(
                 Expressions.NUMBER,
-                numToken,
+                numberToken,
                 currentCodePosition);
 
-        Token operationToken = ask(
-                Lexemes.PLUS,
-                Lexemes.MINUS,
-                Lexemes.MULTIPLY,
-                Lexemes.DIVIDE);
+        Token muldivToken = ask(Lexemes.MULTIPLY, Lexemes.DIVIDE);
+        if (muldivToken == null) return numberNode;
 
-        if (operationToken == null) return numNode;
-
-        ASTNode operationNode = new ASTNode(
-                Expressions.cast(operationToken.type()),
+        ASTNode muldivNode = new ASTNode(
+                Expressions.cast(muldivToken.type()),
                 currentCodePosition);
-        operationNode.add(numNode);
-        operationNode.add(parseOperation());
+        muldivNode.add(numberNode);
+        muldivNode.add(parseMuldivOperation());
 
-        return operationNode;
+        return muldivNode;
+    }
+
+    /**
+     * This method parse sum and minus operations.
+     * To parse those operations, the method checks if there are mul or div operations before to
+     * start to analyze the tokens (This based on operations' hierarchy).
+     * If there is not '+' or '-' lexeme returns number node created by method
+     * parseMuldivOperation, else returns a sum or minus operation node that could contain
+     * mul or div operation.
+     * The operations returned by this method are already ordered.
+     * @return a number node or operation node.
+     */
+    private @NotNull ASTNode parsePlusminusOperation() {
+        ASTNode numberNode = parseMuldivOperation();
+
+        Token plusminusToken = ask(Lexemes.PLUS, Lexemes.MINUS);
+        if (plusminusToken == null) return numberNode;
+
+        ASTNode plusminusNode = new ASTNode(
+                Expressions.cast(plusminusToken.type()),
+                currentCodePosition);
+        plusminusNode.add(numberNode);
+        plusminusNode.add(parsePlusminusOperation());
+
+        return plusminusNode;
     }
 
     private boolean match(Lexemes... expectedLexeme) {
@@ -221,15 +246,30 @@ public class Parser {
             currentCodePosition = currentToken.position();
             return currentToken;
         }
-        else throw new RuntimeException("Fin inesperado de tokens");
+        else throw new RuntimeException("The tokens ran out unexpectedly");
     }
 
+    /**
+     * Validates if one of the requested lexemes next to the current lexeme, if true the method
+     * calls and returns nextToken() method, if there is not anyone, the method throws an
+     * ExpectedLexemeException with information about error.
+     * @param expectedLexeme an array with the lexemes requested.
+     * @return the next token with one of the lexemes requested.
+     * @throws RuntimeException if the method does not find any of the requested lexemes after the
+     * current token.
+     */
     private @NotNull Token expected(Lexemes... expectedLexeme) throws RuntimeException {
         if (match(expectedLexeme))
             return nextToken();
         throw new ExpectedLexemeException(currentToken(), expectedLexeme);
     }
 
+    /**
+     * Checks if the requested tokens are next to the current token, if true the method calls and
+     * returns the nextToken() method, otherwise, return null.
+     * @param askedLexemes an array with the lexemes requested.
+     * @return the next token with one of the lexemes requested, or null if there is not anyone.
+     */
     private @Nullable Token ask(Lexemes... askedLexemes) {
         if (match(askedLexemes))
             return nextToken();

@@ -1,20 +1,19 @@
-package compiler.semantic;
+package compiler.language;
 
 import compiler.parser.ASTNode;
 import compiler.util.CPoint;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public abstract class Var {
-    protected final ASTNode node;
+@Getter
+public abstract class Var extends Expression {
     protected final @NotNull String name;
-    protected final @NotNull CPoint declarationPosition;
 
     public Var(@NotNull ASTNode node) {
-        this.node = node;
-        this.name = node.getValue();
-        this.declarationPosition = node.getPosition();
+        super(node.getPosition());
+        this.name = node.getValue().toString();
     }
 
     @Override

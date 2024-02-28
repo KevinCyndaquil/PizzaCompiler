@@ -1,25 +1,20 @@
 package compiler.semantic;
 
-import compiler.parser.ASTNode;
+import compiler.language.Var;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 
 public class SymbolTable extends HashSet<Var> {
 
-    public @Nullable Var get(String name) {
+    public @Nullable Var get(Object value) {
         return stream()
-                .reduce(null, (a, s) -> s.name.equals(name) ? s : a);
+                .reduce(null, (a, s) -> s.getName().equals(value) ? s : a);
     }
 
-    public ASTNode getNode(String name) {
-        Var var = get(name);
-        return var == null ? null : var.node;
-    }
-
-    public boolean isDeclared(String name) {
+    public boolean isDeclared(Object value) {
         return stream()
-                .map(v -> v.name.equals(name))
+                .map(v -> v.getName().equals(value))
                 .reduce(false, Boolean::logicalOr);
     }
 }
