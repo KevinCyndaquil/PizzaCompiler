@@ -1,23 +1,21 @@
 package compiler.language;
 
-import compiler.util.CPoint;
+import compiler.parser.ASTNode;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+@Getter
+public class Make extends Instruction {
+    private final Instruction makeInstruction;
 
-public class Make extends Expression{
-    protected @NotNull Sizes size;
-    protected @NotNull List<Ingredient> ingredients = new ArrayList<>();
-    protected @NotNull List<Specialty> specialties = new ArrayList<>();
+    public Make(@NotNull ASTNode node,
+                @NotNull Instruction makeInstruction) {
+        super(node.getPosition());
+        this.makeInstruction = makeInstruction;
+    }
 
-    public Make(@NotNull CPoint declarationPosition,
-                @NotNull Sizes size,
-                List<Ingredient> ingredients,
-                List<Specialty> specialties) {
-        super(declarationPosition);
-        this.size = size;
-        this.ingredients.addAll(ingredients);
-        this.specialties.addAll(specialties);
+    @Override
+    public String toString() {
+        return super.toString() + " " + makeInstruction;
     }
 }

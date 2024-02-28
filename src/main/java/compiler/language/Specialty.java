@@ -4,11 +4,9 @@ import compiler.parser.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.List;
 import java.util.Map;
 
-public class Specialty extends Var {
-
+public class Specialty extends Assignment {
     private final @Unmodifiable Map<Ingredient, Integer> ingredients;
 
     public Specialty(@NotNull ASTNode node, Map<Ingredient, Integer> ingredients) {
@@ -16,8 +14,7 @@ public class Specialty extends Var {
         this.ingredients = ingredients;
     }
 
-    @Override
-    public String toString() {
-        return "%s %s".formatted(name, ingredients);
+    public @Unmodifiable Map<Ingredient, Integer> ingredients() {
+        return ingredients;
     }
 }

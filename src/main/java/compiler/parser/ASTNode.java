@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ASTNode {
@@ -39,6 +40,12 @@ public class ASTNode {
     protected void add(ASTNode node) {
         children.add(node);
         node.father = this;
+    }
+
+    public boolean is(Expressions... expressions) {
+        return Arrays.stream(expressions)
+                .map(type::equals)
+                .reduce(false, Boolean::logicalOr);
     }
 
     @Contract("_ -> new")

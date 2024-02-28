@@ -109,7 +109,7 @@ public class Parser {
         makeNode.add(sizeNode);
 
         expected(Lexemes.PIZZA);
-        makeNode.add(parsePizza());
+        sizeNode.add(parsePizza());
 
         expected(Lexemes.SEMICOLON);
 
@@ -169,7 +169,7 @@ public class Parser {
             if (match(Lexemes.AND)) nextTokenPosition++;
             Token addToken = expected(Lexemes.LITERAL);
             ofNode.add(new ASTNode(
-                    Expressions.LITERAL,
+                    Expressions.SPECIALTY_VAR,
                     addToken,
                     currentCodePosition));
         } while (match(Lexemes.AND));

@@ -35,7 +35,6 @@ public class LexicalAnalyzer {
 
     public LexicalAnalyzer(@NotNull BufferedReader reader) throws IOException {
         for(String line = reader.readLine(); line != null; line = reader.readLine()) {
-            if (line.startsWith("//")) continue;
             code.add(line);
         }
     }
@@ -46,6 +45,11 @@ public class LexicalAnalyzer {
 
             while (currentPosition.x < input.length()) {
                 currentChar = input.charAt(currentPosition.x);
+
+                if (currentChar == '/')
+                    if (currentPosition.x < (input.length() - 1))
+                        if (input.charAt(currentPosition.x + 1) == '/')
+                            break;
 
                 if (Character.isWhitespace(currentChar)) checkWhitespace();
                 else if (Character.isDigit(currentChar)) checkDigit(input);

@@ -40,7 +40,10 @@ public class Main {
             System.out.println(programNode);
 
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(programNode);
-            semanticAnalyzer.analyze(); //This is still in development
+            var instructions = semanticAnalyzer.analyze(); //This is still in development
+
+            System.out.println("\n\n----SEMANTIC----");
+            System.out.println(instructions);
 
         } catch (FileNotFoundException e) {
             throw new RuntimeException("Pizza file (.pf) path='%s' could not be found".formatted(path));

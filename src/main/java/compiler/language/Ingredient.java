@@ -10,7 +10,7 @@ import java.net.URL;
 import java.util.List;
 
 @Getter
-public class Ingredient extends Var {
+public class Ingredient extends Assignment {
     protected URL imageUrl;
 
     public Ingredient(@NotNull ASTNode node) throws MalformedURLException {
@@ -21,10 +21,5 @@ public class Ingredient extends Var {
             throw new RuntimeException("The ASTNode provided to define a ingredient must be indeed an %s expression"
                 .formatted(Expressions.INGREDIENT_VAR));
         imageUrl = new URL(nodes.get(0).getValue().toString());
-    }
-
-    @Override
-    public String toString() {
-        return name;
     }
 }
