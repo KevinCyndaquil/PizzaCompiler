@@ -1,6 +1,6 @@
-package compiler.language;
+package language;
 
-import compiler.util.CPoint;
+import language.util.CPoint;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +14,6 @@ public abstract class Instruction {
 
     @Override
     public String toString() {
-        return "declared at %s".formatted(declaredAt);
+        return "Instruction declared at %s".formatted(declaredAt);
     }
 }

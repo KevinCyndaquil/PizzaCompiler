@@ -1,15 +1,20 @@
 package compiler.semantic;
 
-import compiler.language.Assignment;
-import org.jetbrains.annotations.Nullable;
+import language.types.Assignment;
+import compiler.parser.ASTNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
 public class SymbolTable extends HashSet<Assignment> {
 
-    public @Nullable Assignment get(Object value) {
+    public Assignment get(Object value) {
         return stream()
                 .reduce(null, (a, s) -> s.getName().equals(value) ? s : a);
+    }
+
+    protected Assignment get(@NotNull ASTNode node) {
+        return get(node.getValue());
     }
 
     public boolean isDeclared(Object value) {
@@ -18,10 +23,7 @@ public class SymbolTable extends HashSet<Assignment> {
                 .reduce(false, Boolean::logicalOr);
     }
 
-    public boolean isDeclaredAs(Object value, Class<? extends Assignment> aClass) {
-        var assignmentDeclared = stream()
-                .reduce(null, (a, v) -> v.getName().equals(value) ? v : a);
-        if (assignmentDeclared == null) return false;
-        return assignmentDeclared.getClass().equals(aClass);
+    public boolean isDeclared(@NotNull ASTNode node) {
+        return isDeclared(node.getValue());
     }
 }

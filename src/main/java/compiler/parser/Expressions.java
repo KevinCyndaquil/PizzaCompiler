@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 public enum Expressions {
     PROGRAM,
     PARAMETER,
+    INCLUDE,
     MAKE,
     SIZE,
     PIZZA,
@@ -14,7 +15,7 @@ public enum Expressions {
     SPECIALTY_VAR,
     NUMBER,
     LITERAL,
-    URL_LITERAL,
+    PATH,
     ADD,
     OF,
     PLUS,

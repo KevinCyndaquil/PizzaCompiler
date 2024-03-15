@@ -2,7 +2,8 @@ package compiler.parser;
 
 import compiler.lexical.Lexemes;
 import compiler.lexical.Token;
-import compiler.util.CPoint;
+import drawer.Program;
+import language.util.CPoint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,11 +11,14 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
+    private final Program program;
     private final List<Token> tokens;
     private int nextTokenPosition;
     private CPoint currentCodePosition;
 
-    public Parser(List<Token> tokens) {
+    public Parser(Program program, List<Token> tokens) {
+        this.program = program;
+
         this.tokens = tokens;
         this.nextTokenPosition = 0;
         this.currentCodePosition = new CPoint();
@@ -26,18 +30,30 @@ public class Parser {
 
     public ASTNode parseStatement() {
         ASTNode programNode = new ASTNode(Expressions.PROGRAM, currentCodePosition);
+        programNode.value = program;
 
         do {
             Token currentToken = nextToken();
             programNode.add(switch (currentToken.type()) {
                 case MAKE -> parseMake();
                 case DEFINE -> parseDefine();
+                case INCLUDE -> parseInclude();
                 default -> throw new ExpressionNotInterpretedException(currentToken);
             });
 
         } while (nextTokenPosition < tokens.size());
 
         return programNode;
+    }
+
+    private @NotNull ASTNode parseInclude() {
+        ASTNode includeNode = new ASTNode(Expressions.INCLUDE, currentCodePosition);
+        includeNode.value = Lexemes.INCLUDE.value;
+        includeNode.add(parseText());
+
+        expected(Lexemes.SEMICOLON);
+
+        return includeNode;
     }
 
     private @NotNull ASTNode parseDefine() {
@@ -60,7 +76,7 @@ public class Parser {
         ingredientNode.add(identifierNode);
 
         expected(Lexemes.OPEN_PARENTHESIS);
-        identifierNode.add(parseUrlLiteral());
+        identifierNode.add(parseText());
         expected(Lexemes.CLOSE_PARENTHESIS);
 
         expected(Lexemes.SEMICOLON);
@@ -90,14 +106,14 @@ public class Parser {
         return specialtyNode;
     }
 
-    private @NotNull ASTNode parseUrlLiteral() {
+    private @NotNull ASTNode parseText() {
         expected(Lexemes.SINGLE_QUOTE);
         Token urlToken = expected(Lexemes.TEXT);
-        ASTNode urlNode = new ASTNode(Expressions.URL_LITERAL, urlToken, currentCodePosition);
+        ASTNode urlNode = new ASTNode(Expressions.PATH, urlToken, currentCodePosition);
         expected(Lexemes.SINGLE_QUOTE);
 
         if (match(Lexemes.SINGLE_QUOTE))
-            urlNode.value = urlNode.value + parseUrlLiteral().value.toString();
+            urlNode.value = urlNode.value + parseText().value.toString();
         return urlNode;
     }
 

@@ -1,6 +1,6 @@
 package compiler.lexical;
 
-import compiler.util.CPoint;
+import language.util.CPoint;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -103,6 +103,7 @@ public class LexicalAnalyzer {
 
         while (currentPosition.x < input.length() &&
                 Character.isDigit(input.charAt(currentPosition.x))) {
+
             value.append(input.charAt(currentPosition.x++));
         }
 
@@ -120,7 +121,9 @@ public class LexicalAnalyzer {
                 (Character.isLetterOrDigit(currentChar) ||
                         currentChar == '_')) {
             value.append(currentChar);
-            currentChar = input.charAt(++currentPosition.x);
+
+            if (++currentPosition.x == input.length()) break;
+            currentChar = input.charAt(currentPosition.x);
         }
 
         return new Token(Lexemes.get(value), value.toString(), lexemePosition);
@@ -133,7 +136,9 @@ public class LexicalAnalyzer {
         while (currentPosition.x < input.length() &&
                 currentChar != '\'') {
             text.append(input.charAt(currentPosition.x));
-            currentChar = input.charAt(++currentPosition.x);
+
+            if (++currentPosition.x == input.length()) break;
+            currentChar = input.charAt(currentPosition.x);
         }
 
         isParsingText = false;

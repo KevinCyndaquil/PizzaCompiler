@@ -1,6 +1,6 @@
 package compiler.lexical;
 
-import compiler.util.CPoint;
+import language.util.CPoint;
 import org.jetbrains.annotations.NotNull;
 
 public class CharUnrecognizedException extends RuntimeException {

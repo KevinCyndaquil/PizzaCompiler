@@ -1,6 +1,7 @@
-package compiler.language;
+package language.types;
 
 import compiler.parser.ASTNode;
+import language.Instruction;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 

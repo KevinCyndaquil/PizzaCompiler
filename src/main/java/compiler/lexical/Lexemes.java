@@ -9,6 +9,7 @@ import java.util.Arrays;
 @Getter
 public enum Lexemes {
     //RESERVED WORDS
+    INCLUDE("include"),
     DEFINE("define"),
     INGREDIENT("ingredient"),
     SPECIALTY("specialty"),

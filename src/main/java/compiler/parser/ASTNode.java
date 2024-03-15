@@ -1,7 +1,7 @@
 package compiler.parser;
 
 import compiler.lexical.Token;
-import compiler.util.CPoint;
+import language.util.CPoint;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +22,7 @@ public class ASTNode {
     public ASTNode(@NotNull Expressions type,
                    @NotNull CPoint position) {
         this.type = type;
+        this.value = type.name();
         this.position = position;
     }
 
@@ -29,7 +30,7 @@ public class ASTNode {
                    @NotNull Token token,
                    @NotNull CPoint position) {
         this.type = type;
-        this.value = token.value();
+        this.value = token.value().toLowerCase();
         this.position = position;
     }
 
@@ -62,14 +63,21 @@ public class ASTNode {
 
     public @NotNull ASTNode left() throws EmptyASTException {
         if (children.isEmpty())
-            throw new EmptyASTException("There is not a left(index: 0) value in children");
+            throw new EmptyASTException(EmptyASTException.Case.LEFT);
         return children.get(0);
     }
 
     public @NotNull ASTNode right() throws EmptyASTException {
         if (children.size() < 2)
-            throw new EmptyASTException("There is not a right(index: 1) value in children");
+            throw new EmptyASTException(EmptyASTException.Case.RIGHT);
         return children.get(1);
+    }
+
+    public @NotNull ASTNode root() {
+        ASTNode curret = this;
+
+        while (curret.father != null) {curret = curret.father; }
+        return curret;
     }
 
     private @NotNull String formatNode(int depth) {
@@ -93,8 +101,14 @@ public class ASTNode {
     }
 
     public static class EmptyASTException extends RuntimeException {
-        public EmptyASTException(String message) {
-            super(message);
+        public EmptyASTException(Case side) {
+            super("There is not a %s value in children"
+                    .formatted(side == Case.LEFT ? "left(index: 0)" : "right(index: 1)"));
+        }
+
+        public enum Case {
+            LEFT,
+            RIGHT,
         }
     }
 }

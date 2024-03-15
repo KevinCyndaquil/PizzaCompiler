@@ -1,4 +1,4 @@
-package compiler.util;
+package language.util;
 
 import java.awt.*;
 

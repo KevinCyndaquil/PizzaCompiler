@@ -36,3 +36,12 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/src/main/java/drawer/Bg.java
+/src/main/java/language/util/Circle.java
+/src/main/java/language/util/Documents.java
+/src/main/java/drawer/Drawer.java
+/src/main/java/compiler/semantic/InvalidPathException.java
+/src/main/java/drawer/Libraries.java
+/src/main/resources/ingredients/pepperoni.png
+/src/main/java/drawer/Program.java
+/src/main/java/language/util/Segment.java

@@ -1,6 +1,6 @@
 package compiler.semantic;
 
-import compiler.language.Assignment;
+import language.types.Assignment;
 import compiler.parser.ASTNode;
 import org.jetbrains.annotations.NotNull;
 
