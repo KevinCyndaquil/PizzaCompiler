@@ -1,5 +1,5 @@
-import drawer.Drawer;
-import drawer.Program;
+import program.DrawManager;
+import program.Program;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,7 +13,7 @@ public class Main {
                 "A pizza file path must be included");
 
         Program program = new Program(new File(args[0]));
-        Drawer drawer = new Drawer(program.getPath().getParent(), program.compile().instructions);
+        DrawManager drawer = new DrawManager(program.compile());
         drawer.draw();
     }
 }

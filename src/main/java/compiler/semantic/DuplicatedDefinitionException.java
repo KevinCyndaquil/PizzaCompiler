@@ -4,9 +4,9 @@ import language.types.Assignment;
 import compiler.parser.ASTNode;
 import org.jetbrains.annotations.NotNull;
 
-public class DuplicatedVarException extends RuntimeException {
+public class DuplicatedDefinitionException extends RuntimeException {
 
-    public DuplicatedVarException(
+    public DuplicatedDefinitionException(
             @NotNull ASTNode duplicated,
             @NotNull Assignment origin) {
         super(("Semantic Error: Declaration duplicated of %s located at %s, " +

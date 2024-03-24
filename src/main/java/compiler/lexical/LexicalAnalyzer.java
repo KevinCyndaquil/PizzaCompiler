@@ -1,6 +1,6 @@
 package compiler.lexical;
 
-import language.util.CPoint;
+import language.util.Position;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -18,7 +18,7 @@ import java.util.Objects;
 
 public class LexicalAnalyzer {
     private final List<String> code = new ArrayList<>();
-    private final CPoint currentPosition = new CPoint();
+    private final Position currentPosition = new Position();
 
     private final List<Token> tokens = new ArrayList<>();
     private Token lastToken;
@@ -98,7 +98,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsNumber(@NotNull String input) {
-        CPoint lexemePosition = new CPoint(currentPosition);
+        Position lexemePosition = new Position(currentPosition);
         StringBuilder value = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -114,7 +114,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsKeywordOrLiteral(@NotNull String input) {
-        CPoint lexemePosition = new CPoint(currentPosition);
+        Position lexemePosition = new Position(currentPosition);
         StringBuilder value = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -130,7 +130,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsText(@NotNull String input) {
-        CPoint lexemePosition = new CPoint(currentPosition);
+        Position lexemePosition = new Position(currentPosition);
         StringBuilder text = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -149,7 +149,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsSpecialChar() {
-        CPoint lexemePosition = new CPoint(currentPosition);
+        Position lexemePosition = new Position(currentPosition);
         Lexemes lexeme = Lexemes.get(currentChar);
 
         if (Objects.isNull(lexeme))

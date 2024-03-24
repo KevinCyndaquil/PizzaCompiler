@@ -1,7 +1,7 @@
 package compiler.parser;
 
 import compiler.lexical.Token;
-import language.util.CPoint;
+import language.util.Position;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -11,16 +11,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Defines a root of the ASTNode (Abstract Syntax Tree).
+ */
 public class ASTNode {
     @Getter protected Object value;
-    @Getter protected final @NotNull CPoint position;
+    @Getter protected final @NotNull Position position;
 
     @Getter protected final @NotNull Expressions type;
     @Getter protected ASTNode father;
     private final List<ASTNode> children = new ArrayList<>();
 
     public ASTNode(@NotNull Expressions type,
-                   @NotNull CPoint position) {
+                   @NotNull Position position) {
         this.type = type;
         this.value = type.name();
         this.position = position;
@@ -28,7 +31,7 @@ public class ASTNode {
 
     public ASTNode(@NotNull Expressions type,
                    @NotNull Token token,
-                   @NotNull CPoint position) {
+                   @NotNull Position position) {
         this.type = type;
         this.value = token.value().toLowerCase();
         this.position = position;
@@ -43,12 +46,23 @@ public class ASTNode {
         node.father = this;
     }
 
+    /**
+     * Checks if this node is at least one of the types given.
+     * @param expressions the types to be compared.
+     * @return true if there is one coincidence, else false.
+     */
     public boolean is(Expressions... expressions) {
         return Arrays.stream(expressions)
                 .map(type::equals)
                 .reduce(false, Boolean::logicalOr);
     }
 
+    /**
+     * Checks if there is a root in this node that has the Expression type given.
+     * @param type the expression type to be found.
+     * @return a list with all nodes that has the type given, empty if there is not any with that
+     * characteristic.
+     */
     @Contract("_ -> new")
     public List<ASTNode> find(Expressions type) {
         var filter = children.stream()
@@ -61,23 +75,34 @@ public class ASTNode {
                 .toList();
     }
 
+    /**
+     * @return the first son.
+     * @throws EmptyASTException if this node does not have roots.
+     */
     public @NotNull ASTNode left() throws EmptyASTException {
         if (children.isEmpty())
             throw new EmptyASTException(EmptyASTException.Case.LEFT);
         return children.get(0);
     }
 
+    /**
+     * @return the second son.
+     * @throws EmptyASTException if this node does not have at least two roots.
+     */
     public @NotNull ASTNode right() throws EmptyASTException {
         if (children.size() < 2)
             throw new EmptyASTException(EmptyASTException.Case.RIGHT);
         return children.get(1);
     }
 
+    /**
+     * @return the top root in this node.
+     */
     public @NotNull ASTNode root() {
-        ASTNode curret = this;
+        ASTNode current = this;
 
-        while (curret.father != null) {curret = curret.father; }
-        return curret;
+        while (current.father != null) {current = current.father; }
+        return current;
     }
 
     private @NotNull String formatNode(int depth) {

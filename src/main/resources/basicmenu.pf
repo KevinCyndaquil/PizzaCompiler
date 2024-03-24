@@ -1,1 +1,2 @@
 define ingredient PEPPERONI ('pepperoni.png');
+define ingredient HAM ('ham.png');

@@ -2,32 +2,42 @@ package compiler.parser;
 
 import compiler.lexical.Lexemes;
 import compiler.lexical.Token;
-import drawer.Program;
-import language.util.CPoint;
+import program.Program;
+import language.util.Position;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * This is the Syntax Analyzer (Parser).
+ * A parser is a software component that analyzes input data according to a defined syntax;
+ * breaking it into tokens and building a structured representation such as an Abstract Syntax
+ * Tree (AST) that captures the hierarchical relationships between elements in the input.
+ */
 public class Parser {
     private final Program program;
     private final List<Token> tokens;
     private int nextTokenPosition;
-    private CPoint currentCodePosition;
+    private Position currentCodePosition;
 
     public Parser(Program program, List<Token> tokens) {
         this.program = program;
 
         this.tokens = tokens;
         this.nextTokenPosition = 0;
-        this.currentCodePosition = new CPoint();
+        this.currentCodePosition = new Position();
     }
 
     public ASTNode parse() {
         return parseStatement();
     }
 
+    /**
+     * Starts parsing all statements.
+     * @return the program node.
+     */
     public ASTNode parseStatement() {
         ASTNode programNode = new ASTNode(Expressions.PROGRAM, currentCodePosition);
         programNode.value = program;
@@ -46,6 +56,10 @@ public class Parser {
         return programNode;
     }
 
+    /**
+     * Parse the including of libraries in this program.
+     * @return include node.
+     */
     private @NotNull ASTNode parseInclude() {
         ASTNode includeNode = new ASTNode(Expressions.INCLUDE, currentCodePosition);
         includeNode.value = Lexemes.INCLUDE.value;
@@ -56,6 +70,10 @@ public class Parser {
         return includeNode;
     }
 
+    /**
+     * Starts parsing the definition of assignments in this language.
+     * @return define node.
+     */
     private @NotNull ASTNode parseDefine() {
         ASTNode defineNode = new ASTNode(Expressions.DEFINE, currentCodePosition);
 
@@ -68,6 +86,10 @@ public class Parser {
         return defineNode;
     }
 
+    /**
+     * Parse an ingredient definition.
+     * @return ingredient node.
+     */
     private @NotNull ASTNode parseIngredient() {
         ASTNode ingredientNode = new ASTNode(Expressions.INGREDIENT_VAR, currentCodePosition);
 
@@ -79,11 +101,32 @@ public class Parser {
         identifierNode.add(parseText());
         expected(Lexemes.CLOSE_PARENTHESIS);
 
+        if (ask(Lexemes.RESIZE) != null) ingredientNode.add(parseResize());
+
         expected(Lexemes.SEMICOLON);
 
         return ingredientNode;
     }
 
+    /**
+     * Parse the new size of ingredient's image.
+     * @return the resize node.
+     */
+    private @NotNull ASTNode parseResize() {
+        Token resizeToken = currentToken();
+        ASTNode resizeNode = new ASTNode(Expressions.RESIZE, resizeToken, currentCodePosition);
+
+        Token numberToken = expected(Lexemes.NUMBER);
+        ASTNode numberNode = new ASTNode(Expressions.NUMBER, numberToken, currentCodePosition);
+        resizeNode.add(numberNode);
+
+        return resizeNode;
+    }
+
+    /**
+     * Parse the specialty definition.
+     * @return specialty node.
+     */
     private @NotNull ASTNode parseSpecialty() {
         ASTNode specialtyNode = new ASTNode(Expressions.SPECIALTY_VAR, currentCodePosition);
 
@@ -99,24 +142,32 @@ public class Parser {
         do {
             identifierNode.add(parsePizzaIngredients());
             expected(Lexemes.SEMICOLON);
-        } while (!match(Lexemes.CLOSE_BRACE));
+        } while (!are(Lexemes.CLOSE_BRACE));
 
         expected(Lexemes.CLOSE_BRACE);
 
         return specialtyNode;
     }
 
+    /**
+     * Parse any text between two single_quotes and if there are other texts concatenated.
+     * @return the textNode.
+     */
     private @NotNull ASTNode parseText() {
         expected(Lexemes.SINGLE_QUOTE);
         Token urlToken = expected(Lexemes.TEXT);
         ASTNode urlNode = new ASTNode(Expressions.PATH, urlToken, currentCodePosition);
         expected(Lexemes.SINGLE_QUOTE);
 
-        if (match(Lexemes.SINGLE_QUOTE))
+        if (are(Lexemes.SINGLE_QUOTE))
             urlNode.value = urlNode.value + parseText().value.toString();
         return urlNode;
     }
 
+    /**
+     * Starts parsing a make instruction.
+     * @return make node.
+     */
     private @NotNull ASTNode parseMake() {
         ASTNode makeNode = new ASTNode(Expressions.MAKE, currentCodePosition);
 
@@ -132,6 +183,10 @@ public class Parser {
         return makeNode;
     }
 
+    /**
+     * Starts parsing the pizza's properties.
+     * @return pizza node.
+     */
     private @NotNull ASTNode parsePizza() {
         ASTNode pizzaNode = new ASTNode(Expressions.PIZZA, currentCodePosition);
 
@@ -142,26 +197,36 @@ public class Parser {
         }
 
         if (addOrOfToken.is(Lexemes.OF))
-            if (match(Lexemes.ADD)) {
+            if (are(Lexemes.ADD)) {
                 nextToken();
                 pizzaNode.add(parseAdd());
             }
 
+        if (ask(Lexemes.SAVE) != null) pizzaNode.add(parseSave());
+
         return pizzaNode;
     }
 
+    /**
+     * Starts parsing the ingredients of a pizza.
+     * @return add node.
+     */
     private @NotNull ASTNode parseAdd() {
         ASTNode addNode = new ASTNode(Expressions.ADD, currentCodePosition);
 
         do {
-            if (match(Lexemes.AND)) nextTokenPosition++;
+            if (are(Lexemes.AND)) nextTokenPosition++;
 
             addNode.add(parsePizzaIngredients());
-        } while (match(Lexemes.AND));
+        } while (are(Lexemes.AND));
 
         return addNode;
     }
 
+    /**
+     * Parse all ingredients added to a pizza.
+     * @return ingredient literal node.
+     */
     private @NotNull ASTNode parsePizzaIngredients() {
         Token literalToken = expected(Lexemes.LITERAL);
         ASTNode ingredientLiteralNode = new ASTNode(
@@ -176,19 +241,23 @@ public class Parser {
         return ingredientLiteralNode;
     }
 
+    /**
+     * Parse the specialties of a pizza.
+     * @return of node.
+     */
     private @NotNull ASTNode parseOf() {
         ASTNode ofNode = new ASTNode(
                 Expressions.OF,
                 currentCodePosition);
 
         do {
-            if (match(Lexemes.AND)) nextTokenPosition++;
+            if (are(Lexemes.AND)) nextTokenPosition++;
             Token addToken = expected(Lexemes.LITERAL);
             ofNode.add(new ASTNode(
                     Expressions.SPECIALTY_VAR,
                     addToken,
                     currentCodePosition));
-        } while (match(Lexemes.AND));
+        } while (are(Lexemes.AND));
 
         return ofNode;
     }
@@ -244,13 +313,35 @@ public class Parser {
         return plusminusNode;
     }
 
-    private boolean match(Lexemes... expectedLexeme) {
+    /**
+     * Parse a save as instruction.
+     * @return save node.
+     */
+    private @NotNull ASTNode parseSave() {
+        Token saveToken = currentToken();
+        ASTNode saveNode = new ASTNode(Expressions.SAVE_AS, saveToken, currentCodePosition);
+
+        expected(Lexemes.AS);
+        saveNode.add(parseText());
+
+        return saveNode;
+    }
+
+    /**
+     * Check if the next token is of any Lexeme given without going to the next token.
+     * @param expectedLexeme the lexemes to be compared.
+     * @return true if at least one lexeme is equals to the next token, else false.
+     */
+    private boolean are(Lexemes... expectedLexeme) {
         if (nextTokenPosition >= tokens.size()) return false;
         return Arrays.stream(expectedLexeme)
                 .map(l -> tokens.get(nextTokenPosition).is(l))
                 .reduce(false, Boolean::logicalOr);
     }
 
+    /**
+     * @return the current token read.
+     */
     private Token currentToken() {
         if (nextTokenPosition == 0) return tokens.get(0);
         return tokens.get(nextTokenPosition - 1);
@@ -275,7 +366,7 @@ public class Parser {
      * current token.
      */
     private @NotNull Token expected(Lexemes... expectedLexeme) throws RuntimeException {
-        if (match(expectedLexeme))
+        if (are(expectedLexeme))
             return nextToken();
         throw new ExpectedLexemeException(currentToken(), expectedLexeme);
     }
@@ -287,7 +378,7 @@ public class Parser {
      * @return the next token with one of the lexemes requested, or null if there is not anyone.
      */
     private @Nullable Token ask(Lexemes... askedLexemes) {
-        if (match(askedLexemes))
+        if (are(askedLexemes))
             return nextToken();
         return null;
     }

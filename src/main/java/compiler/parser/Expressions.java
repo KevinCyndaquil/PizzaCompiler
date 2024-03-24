@@ -3,6 +3,9 @@ package compiler.parser;
 import compiler.lexical.Lexemes;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Contains all expressions in this language.
+ */
 public enum Expressions {
     PROGRAM,
     PARAMETER,
@@ -11,6 +14,8 @@ public enum Expressions {
     SIZE,
     PIZZA,
     DEFINE,
+    RESIZE,
+    SAVE_AS,
     INGREDIENT_VAR,
     SPECIALTY_VAR,
     NUMBER,

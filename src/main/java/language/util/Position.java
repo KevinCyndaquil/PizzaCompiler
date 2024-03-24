@@ -2,17 +2,17 @@ package language.util;
 
 import java.awt.*;
 
-public class CPoint extends Point {
+public class Position extends Point {
 
-    public CPoint(int x, int y) {
+    public Position(int x, int y) {
         super(x, y);
     }
 
-    public CPoint(Point point) {
+    public Position(Point point) {
         super(point);
     }
 
-    public CPoint() {
+    public Position() {
         this(0, 0);
     }
 

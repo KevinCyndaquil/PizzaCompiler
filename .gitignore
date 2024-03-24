@@ -36,12 +36,23 @@ build/
 
 ### Mac OS ###
 .DS_Store
-/src/main/java/drawer/Bg.java
+/src/main/java/program/Bg.java
 /src/main/java/language/util/Circle.java
 /src/main/java/language/util/Documents.java
-/src/main/java/drawer/Drawer.java
+/src/main/java/program/Drawer.java
 /src/main/java/compiler/semantic/InvalidPathException.java
-/src/main/java/drawer/Libraries.java
+/src/main/java/program/Libraries.java
 /src/main/resources/ingredients/pepperoni.png
-/src/main/java/drawer/Program.java
+/src/main/java/program/Program.java
 /src/main/java/language/util/Segment.java
+/src/main/java/language/types/Cheese.java
+/src/main/java/program/DefaultColors.java
+/src/main/java/language/util/Drawable.java
+/src/main/java/program/DrawManager.java
+/src/main/resources/ingredients/ham.png
+/src/main/java/compiler/semantic/IllegalDeclarationException.java
+/src/main/java/language/util/Ingredible.java
+/src/main/java/language/types/Ingredients.java
+/.idea/inspectionProfiles/Project_Default.xml
+/src/main/java/language/types/Sauce.java
+/src/main/java/language/util/Specializable.java

@@ -2,12 +2,12 @@ package compiler.semantic;
 
 import compiler.parser.ASTNode;
 import compiler.parser.Expressions;
-import drawer.Program;
+import program.Program;
 import language.*;
-import language.expressions.Make;
+import language.Make;
 import language.types.Assignment;
 import language.types.Ingredient;
-import language.expressions.Pizza;
+import language.types.Pizza;
 import language.types.Specialty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -15,15 +15,20 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * A semantic analyzer is a component of a compiler or interpreter that checks the meaning and
+ * correctness of the parsed code according to the rules and semantics of the programming language.
+ * It performs various tasks such as type checking, scope resolution, detecting semantic errors,
+ * and ensuring compliance with language-specific constraints and specifications.
+ * The semantic analyzer ensures that the code makes sense in the context of the language's
+ * semantics and generates meaningful instructions or actions for further processing.
+ */
 public class SemanticAnalyzer {
-
     private final SymbolTable symbolTable = new SymbolTable();
-    private final List<Instruction> instructions = new ArrayList<>();
+    private final LinkedHashSet<Instruction> instructions = new LinkedHashSet<>();
 
     private final ASTNode programNode;
 
@@ -34,7 +39,7 @@ public class SemanticAnalyzer {
     public Intermediate analyze() {
        analyzeProgram(programNode);
 
-       return new Intermediate(instructions, symbolTable);
+       return new Intermediate(programNode, instructions, symbolTable);
     }
 
     private void analyzeProgram(@NotNull ASTNode node) {
@@ -58,7 +63,7 @@ public class SemanticAnalyzer {
         try {
             Program includeProgram = new Program(sourceProgram.getFile(path));
 
-            var include = includeProgram.compile();
+            Intermediate include = includeProgram.compile();
             //add each instruction and symbol
             instructions.addAll(include.instructions);
             symbolTable.addAll(include.symbols);
@@ -78,10 +83,14 @@ public class SemanticAnalyzer {
         ASTNode literalNode = ingredientNode.left();
         Ingredient ingredient = new Ingredient(ingredientNode);
 
+        if (ingredient.getSize().getWidth() == 0 || ingredient.getSize().getHeight() == 0)
+            throw new IllegalArgumentException(
+                    "Ingredient %s must have a dimension greater than zero located at %s"
+                            .formatted(literalNode.getValue(), ingredientNode.getPosition()));
         if (symbolTable.add(ingredient)) return;
 
         Assignment declaredIngredient = symbolTable.get(literalNode.getValue());
-        throw new DuplicatedVarException(literalNode, declaredIngredient);
+        throw new DuplicatedDefinitionException(literalNode, declaredIngredient);
     }
 
     private void analyzeSpecialtyDefinition(@NotNull ASTNode specialtyNode) {
@@ -106,8 +115,11 @@ public class SemanticAnalyzer {
     }
 
     private void addMake(@NotNull ASTNode makeNode) {
+        Make make = new Make(makeNode);
+        instructions.add(make);
+
         makeNode.children().forEach(n -> {
-            if (n.is(Expressions.SIZE)) instructions.add(new Make(makeNode, analyzePizza(n)));
+            if (n.is(Expressions.SIZE)) make.setInstruction(analyzePizza(n));
         });
     }
 
@@ -118,13 +130,13 @@ public class SemanticAnalyzer {
             switch (n.getType()) {
                 case OF -> pizza.add(validSpecialties(n));
                 case ADD -> pizza.add(validIngredients(n));
+                case SAVE_AS -> pizza.setImageName(n.left().getValue().toString());
             }
         });
-
         return pizza;
     }
 
-    private List<Specialty> validSpecialties(@NotNull ASTNode ofNode) {
+    private LinkedHashSet<Specialty> validSpecialties(@NotNull ASTNode ofNode) {
         return ofNode.children().stream()
                 .map(n -> {
                     if (!symbolTable.isDeclared(n))
@@ -137,23 +149,29 @@ public class SemanticAnalyzer {
 
                     throw new PizzaDefinitionException(n, Expressions.INGREDIENT_VAR);
                 })
-                .toList();
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Map<Ingredient, Integer> validIngredients(@NotNull ASTNode addNode) {
-        return addNode.children().stream()
-                .map(n -> {
-                    if (!symbolTable.isDeclared(n))
-                        throw new UndefinedVarException(n);
+        try {
+            return addNode.children().stream()
+                    .map(n -> {
+                        if (!symbolTable.isDeclared(n))
+                            throw new UndefinedVarException(n);
 
-                    Assignment assignment = symbolTable.get(n);
+                        Assignment assignment = symbolTable.get(n);
 
-                    if (assignment instanceof Ingredient ingredient)
-                        return Map.entry(ingredient, doOperation(n.left()));
+                        System.out.println(n.getValue());
 
-                    throw new PizzaDefinitionException(n, Expressions.INGREDIENT_VAR);
-                })
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                        if (assignment instanceof Ingredient ingredient)
+                            return Map.entry(ingredient, doOperation(n.left()));
+
+                        throw new PizzaDefinitionException(n, Expressions.INGREDIENT_VAR);
+                    })
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        } catch (IllegalStateException e) {
+            throw IllegalDeclarationException.addingIngredientError(addNode);
+        }
     }
 
     private int doOperation(@NotNull ASTNode operationNode) {
@@ -173,11 +191,18 @@ public class SemanticAnalyzer {
         return instructions.toString();
     }
 
+    /**
+     * Contains the output of semantic analyzer process.
+     */
     public static class Intermediate {
-        public @Unmodifiable List<Instruction> instructions;
+        public Program program;
+        public @Unmodifiable LinkedHashSet<Instruction> instructions;
         public SymbolTable symbols;
 
-        public Intermediate(@Unmodifiable List<Instruction> instructions, SymbolTable symbols) {
+        public Intermediate(@NotNull ASTNode programNode,
+                            @Unmodifiable LinkedHashSet<Instruction> instructions,
+                            SymbolTable symbols) {
+            this.program = (Program) programNode.getValue();
             this.instructions = instructions;
             this.symbols = symbols;
         }

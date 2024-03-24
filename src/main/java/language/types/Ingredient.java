@@ -2,7 +2,7 @@ package language.types;
 
 import compiler.parser.ASTNode;
 import compiler.parser.Expressions;
-import drawer.Program;
+import program.Program;
 import compiler.semantic.InvalidPathException;
 import compiler.semantic.PizzaDefinitionException;
 import lombok.Getter;
@@ -18,26 +18,35 @@ import java.nio.file.Paths;
 
 @Getter
 public class Ingredient extends Assignment {
-    protected Image image;
-
     private final ASTNode pathNode;
+    private final Dimension size;
 
-    public Ingredient(@NotNull ASTNode ingredientNode) {
-        super(ingredientNode.left());
+    public Ingredient(@NotNull ASTNode ingNode) {
+        super(ingNode.left());
 
-        if (!ingredientNode.is(Expressions.INGREDIENT_VAR))
-            throw new PizzaDefinitionException(ingredientNode, Expressions.INGREDIENT_VAR);
+        if (!ingNode.is(Expressions.INGREDIENT_VAR))
+            throw new PizzaDefinitionException(ingNode, Expressions.INGREDIENT_VAR);
 
-        this.pathNode = ingredientNode.left().left();
-        this.image = validImage();
+        this.pathNode = ingNode.left().left();
+        this.canvas = obtainImage();
+
+        var resizeNode = ingNode.find(Expressions.RESIZE);
+
+        if (resizeNode.isEmpty()) size = new Dimension(canvas.getWidth(), canvas.getHeight());
+        else {
+            int radius = Integer.parseInt(resizeNode.get(0).left().getValue().toString());
+            size = new Dimension(radius, radius);
+        }
+
+        if (size.getWidth() != size.getHeight()) throw new RuntimeException("Ingredient image must be a squared. Same width and height");
     }
 
     /**
      * First, checks if the path could be a URL, then it does a connection with the server provided
      * the resource, if the path is not a URL, then, checks if it could be a path.
-     * @return A BufferedImage that contains the image read if all went good.
+     * @return A BufferedImage that contains the canvas read if all went good.
      */
-    protected BufferedImage validImage() {
+    protected BufferedImage obtainImage() {
         try {
             URL url = new URL(pathNode.getValue().toString());
             URLConnection connection = url.openConnection();
@@ -47,7 +56,7 @@ public class Ingredient extends Assignment {
                 return ImageIO.read(input);
             }
         } catch (MalformedURLException  e) {
-            return validAsDirectory();
+            return readImageInDirectory();
         } catch (IOException e) {
             throw InvalidPathException.notOpen(pathNode);
         }
@@ -58,9 +67,9 @@ public class Ingredient extends Assignment {
      * The method checks if the path is a compiler resource reference (this means the resource that
      * the code is trying to access is in the resource of this program - the compiler program -).
      * If it is not a compiler resource, then it could be an absolute or relative path.
-     * @return A BufferedImage that contains the image read if all went good.
+     * @return A BufferedImage that contains the canvas read if all went good.
      */
-    protected BufferedImage validAsDirectory() {
+    protected BufferedImage readImageInDirectory() {
         try {
             Program program = (Program) pathNode.root().getValue();
             Path path = Paths.get(pathNode.getValue().toString());
