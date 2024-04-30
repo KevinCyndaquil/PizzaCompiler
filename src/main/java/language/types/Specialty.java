@@ -6,15 +6,16 @@ import language.util.Ingredible;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
 public class Specialty extends Assignment implements Drawable, Ingredible {
-    public final @Unmodifiable Map<Ingredient, Integer> ingredientMap;
-    public LinkedHashSet<Ingredients> ingredients = new LinkedHashSet<>();
+    public final @Unmodifiable LinkedHashMap<Ingredient, Integer> ingredientMap;
+    public LinkedHashSet<Topping> ingredients = new LinkedHashSet<>();
     private Pizza pizza;
 
-    public Specialty(@NotNull ASTNode node, Map<Ingredient, Integer> ingredients) {
+    public Specialty(@NotNull ASTNode node, LinkedHashMap<Ingredient, Integer> ingredients) {
         super(node);
         this.ingredientMap = ingredients;
     }
@@ -30,7 +31,7 @@ public class Specialty extends Assignment implements Drawable, Ingredible {
 
     @Override
     public void add(@NotNull Ingredient ing, int quantity) {
-        ingredients.add(new Ingredients(pizza, ing, quantity));
+        ingredients.add(new Topping(pizza, ing, quantity));
     }
 
     @Override
@@ -40,6 +41,6 @@ public class Specialty extends Assignment implements Drawable, Ingredible {
 
     @Override
     public void draw() {
-        ingredients.forEach(Ingredients::draw);
+        ingredients.forEach(Topping::draw);
     }
 }

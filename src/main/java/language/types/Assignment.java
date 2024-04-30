@@ -62,8 +62,8 @@ public abstract class Assignment extends Graphics2D {
         graphics.drawLine(segment.a.x, segment.a.y, segment.b.x, segment.b.y);
     }
 
-    public void drawIngredient(@NotNull Ingredient ing, @NotNull Position luCorner) {
-        Position center = new Position(
+    public void drawIngredient(@NotNull Ingredient ing, @NotNull Point luCorner) {
+        Point center = new Point(
                 (int) (luCorner.x - ing.getSize().getWidth() / 2),
                 (int) (luCorner.y - ing.getSize().getHeight() / 2));
         drawImage(ing.getCanvas(),

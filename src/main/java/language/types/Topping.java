@@ -6,9 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class Ingredients extends Pizza.Topping {
+public class Topping extends Pizza.Topping {
     public final Ingredient ingredient;
     public final int quantity;
 
@@ -16,7 +15,7 @@ public class Ingredients extends Pizza.Topping {
     private final List<Double> distribution;
     private double maxToppings = 0d;
 
-    public Ingredients(@NotNull Pizza pizza, @NotNull Ingredient ingredient, int quantity) {
+    public Topping(@NotNull Pizza pizza, @NotNull Ingredient ingredient, int quantity) {
         super(pizza);
         this.ingredient = ingredient;
         this.quantity = quantity;
@@ -51,12 +50,13 @@ public class Ingredients extends Pizza.Topping {
                 .map(d -> d % 1 <= 0.5 ? Math.floor(d) : Math.round(d))
                 .map(Double::intValue)
                 .sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
-
-        System.out.println(quantities);
+                .toList();
 
         quantities.forEach(d -> {
-            circle.generateRangePoints(minRadius + divRadius * (rows -1), divRadius * rows, d)
+            circle.generateRangePoints(
+                            minRadius + divRadius * (rows -1),
+                            divRadius * rows,
+                            d)
                     .forEach(p -> drawIngredient(ingredient, p));
             rows--;
         });
@@ -70,7 +70,7 @@ public class Ingredients extends Pizza.Topping {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Ingredients ingredients)) return false;
+        if (!(obj instanceof Topping ingredients)) return false;
         return ingredient.equals(ingredients.ingredient);
     }
 

@@ -1,2 +1,67 @@
-define ingredient PEPPERONI ('pepperoni.png');
-define ingredient HAM ('ham.png');
+// basic ingredients
+define ingredient PEPPERONI ('pepperoni.png') resize 100;
+define ingredient HAM ('ham.png') resize 80;
+define ingredient PINEAPPLE ('pineapple.png') resize 80;
+define ingredient GROUND_MEAT ('ground_meat.png') resize 50;
+define ingredient GREEN_PEPPER ('green_pepper.png') resize 120;
+define ingredient JALAPENO ('jalapeño.png') resize 120;
+define ingredient ONION ('onion.png') resize 150;
+define ingredient MUSHROOM ('mushroom.png') resize 100;
+define ingredient OLIVE ('olive.png') resize 40;
+define ingredient SAUSAGE ('sausage.png') resize 50;
+define ingredient SALAMI ('salami.png') resize 150;
+define ingredient BACON ('bacon.png') resize 70;
+define ingredient CHICKEN ('chicken.png') resize 80;
+define ingredient SHRIMP ('shrimp.png') resize 120;
+define ingredient SHARK ('shark.png') resize 180;
+define ingredient CHEETOS ('cheetos.png') resize 100;
+
+// basic specialties
+define specialty MEXICANA {
+    ONION(20);
+    GROUND_MEAT(55);
+    JALAPENO(15);
+    SAUSAGE(65);
+}
+define specialty HAWAIANA {
+    HAM(48);
+    PINEAPPLE(35);
+}
+define specialty HONOLULU {
+    HAM(38);
+    PINEAPPLE(35);
+    JALAPENO(15);
+    BACON(45);
+}
+define specialty CARNES_FRIAS {
+    SALAMI(18);
+    PEPPERONI(25);
+    HAM(35);
+}
+define specialty CHICKEN_HAWAIANA {
+    PINEAPPLE(35);
+    CHICKEN(35);
+    BACON(35);
+}
+define specialty VEGGIE {
+    ONION(20);
+    GREEN_PEPPER(15);
+    MUSHROOM(20);
+    OLIVE(50);
+}
+define specialty EXTRAVAGANZA {
+    PEPPERONI(20);
+    HAM(25);
+    ONION(15);
+    GREEN_PEPPER(8);
+    MUSHROOM(12);
+    GROUND_MEAT(30);
+    OLIVE(35);
+}
+define specialty MAR_Y_TIERRA {
+    ONION(25);
+    GREEN_PEPPER(20);
+    SHRIMP(20);
+    SHARK(10);
+    GROUND_MEAT(30);
+}

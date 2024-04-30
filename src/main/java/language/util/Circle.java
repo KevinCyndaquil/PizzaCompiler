@@ -33,7 +33,7 @@ public class Circle {
         return new Point(x, y);
     }
 
-    public List<Position> generateRangePoints(int r1, int r2, int nPoints) {
+    public List<Point> generateRangePoints(int r1, int r2, int nPoints) {
         if (r1 > this.radius || r2 > this.radius)
             throw new RuntimeException("interval radius is greater than radius");
 
@@ -43,7 +43,7 @@ public class Circle {
         int minRadius = Math.min(r1, r2);
 
         Random random = new Random();
-        List<Position> points = new ArrayList<>();
+        List<Point> points = new ArrayList<>();
 
         double divTheta = 2 * Math.PI / nPoints;
         double theta = 2 * Math.PI * random.nextDouble();
@@ -58,7 +58,7 @@ public class Circle {
             int x = (int) (radius * cosX) + center.x;
             int y = (int) (radius * sinY) + center.y;
 
-            points.add(new Position(x, y));
+            points.add(new Point(x, y));
         }
 
         return points;

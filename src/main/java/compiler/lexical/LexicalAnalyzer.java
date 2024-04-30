@@ -2,6 +2,7 @@ package compiler.lexical;
 
 import language.util.Position;
 import org.jetbrains.annotations.NotNull;
+import program.Program;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,8 +18,9 @@ import java.util.Objects;
  */
 
 public class LexicalAnalyzer {
+    private final Program program;
     private final List<String> code = new ArrayList<>();
-    private final Position currentPosition = new Position();
+    private final Position currentPosition;
 
     private final List<Token> tokens = new ArrayList<>();
     private Token lastToken;
@@ -33,10 +35,12 @@ public class LexicalAnalyzer {
      */
     private boolean isParsingText = false;
 
-    public LexicalAnalyzer(@NotNull BufferedReader reader) throws IOException {
+    public LexicalAnalyzer(@NotNull BufferedReader reader, Program program) throws IOException {
         for(String line = reader.readLine(); line != null; line = reader.readLine()) {
             code.add(line);
         }
+        this.program = program;
+        this.currentPosition = new Position(program);
     }
 
     public List<Token> analyze() {
@@ -98,7 +102,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsNumber(@NotNull String input) {
-        Position lexemePosition = new Position(currentPosition);
+        Position lexemePosition = new Position(currentPosition, program);
         StringBuilder value = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -114,7 +118,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsKeywordOrLiteral(@NotNull String input) {
-        Position lexemePosition = new Position(currentPosition);
+        Position lexemePosition = currentPosition.create();
         StringBuilder value = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -130,7 +134,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsText(@NotNull String input) {
-        Position lexemePosition = new Position(currentPosition);
+        Position lexemePosition = currentPosition.create();
         StringBuilder text = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -149,7 +153,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsSpecialChar() {
-        Position lexemePosition = new Position(currentPosition);
+        Position lexemePosition = currentPosition.create();
         Lexemes lexeme = Lexemes.get(currentChar);
 
         if (Objects.isNull(lexeme))

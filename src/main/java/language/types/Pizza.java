@@ -21,7 +21,7 @@ public class Pizza extends Assignment implements Drawable, Ingredible, Specializ
     protected final Sauce sauce;
     protected final Cheese cheese;
 
-    @Getter private final LinkedHashSet<Ingredients> ingredients = new LinkedHashSet<>();
+    @Getter private final LinkedHashSet<language.types.Topping> ingredients = new LinkedHashSet<>();
     @Getter private final LinkedHashSet<Specialty> specialties = new LinkedHashSet<>();
 
     @Getter
@@ -95,12 +95,12 @@ public class Pizza extends Assignment implements Drawable, Ingredible, Specializ
         sauce.draw();
         cheese.draw();
         specialties.forEach(Specialty::draw);
-        ingredients.forEach(Ingredients::draw);
+        ingredients.forEach(language.types.Topping::draw);
     }
 
     @Override
     public void add(@NotNull Ingredient ing, int quantity) {
-        ingredients.add(new Ingredients(this, ing, quantity));
+        ingredients.add(new language.types.Topping(this, ing, quantity));
     }
 
     @Override

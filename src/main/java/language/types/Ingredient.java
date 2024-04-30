@@ -2,9 +2,9 @@ package language.types;
 
 import compiler.parser.ASTNode;
 import compiler.parser.Expressions;
+import compiler.semantic.ImageNotSquaredException;
 import program.Program;
 import compiler.semantic.InvalidPathException;
-import compiler.semantic.PizzaDefinitionException;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,21 +24,22 @@ public class Ingredient extends Assignment {
     public Ingredient(@NotNull ASTNode ingNode) {
         super(ingNode.left());
 
-        if (!ingNode.is(Expressions.INGREDIENT_VAR))
-            throw new PizzaDefinitionException(ingNode, Expressions.INGREDIENT_VAR);
+        //if (!ingNode.is(Expressions.INGREDIENT_VAR))
+        //    throw new IllegalDefinitionException(ingNode, Expressions.INGREDIENT_VAR);
 
         this.pathNode = ingNode.left().left();
         this.canvas = obtainImage();
 
-        var resizeNode = ingNode.find(Expressions.RESIZE);
+        var resizeFound = ingNode.find(Expressions.RESIZE);
 
-        if (resizeNode.isEmpty()) size = new Dimension(canvas.getWidth(), canvas.getHeight());
+        if (resizeFound.isEmpty()) size = new Dimension(canvas.getWidth(), canvas.getHeight());
         else {
-            int radius = Integer.parseInt(resizeNode.get(0).left().getValue().toString());
+            int radius = Integer.parseInt(resizeFound.get(0).left().getValue().toString());
             size = new Dimension(radius, radius);
         }
 
-        if (size.getWidth() != size.getHeight()) throw new RuntimeException("Ingredient image must be a squared. Same width and height");
+        if (size.getWidth() != size.getHeight())
+            throw new ImageNotSquaredException(getName(), ingNode.getPosition());
     }
 
     /**

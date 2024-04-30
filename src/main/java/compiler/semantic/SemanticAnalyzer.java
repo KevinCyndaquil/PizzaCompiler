@@ -84,9 +84,7 @@ public class SemanticAnalyzer {
         Ingredient ingredient = new Ingredient(ingredientNode);
 
         if (ingredient.getSize().getWidth() == 0 || ingredient.getSize().getHeight() == 0)
-            throw new IllegalArgumentException(
-                    "Ingredient %s must have a dimension greater than zero located at %s"
-                            .formatted(literalNode.getValue(), ingredientNode.getPosition()));
+            throw new ImageZeroSizeException(literalNode);
         if (symbolTable.add(ingredient)) return;
 
         Assignment declaredIngredient = symbolTable.get(literalNode.getValue());
@@ -106,12 +104,12 @@ public class SemanticAnalyzer {
                         .map(n -> {
                             Assignment var = symbolTable.get(n.getValue());
                             if (!(var instanceof Ingredient ingredient))
-                                throw new PizzaDefinitionException(n, Expressions.INGREDIENT_VAR);
+                                throw new IllegalDefinitionException(n, Expressions.INGREDIENT_VAR);
 
                             int quantity = doOperation(n.left());
                             return Map.entry(ingredient, quantity);
                         })
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (k, v) -> k, LinkedHashMap::new))));
     }
 
     private void addMake(@NotNull ASTNode makeNode) {
@@ -147,31 +145,38 @@ public class SemanticAnalyzer {
                     if (assignment instanceof Specialty specialty)
                         return specialty;
 
-                    throw new PizzaDefinitionException(n, Expressions.INGREDIENT_VAR);
+                    throw new IllegalDefinitionException(n, Expressions.INGREDIENT_VAR);
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private Map<Ingredient, Integer> validIngredients(@NotNull ASTNode addNode) {
-        try {
-            return addNode.children().stream()
-                    .map(n -> {
-                        if (!symbolTable.isDeclared(n))
-                            throw new UndefinedVarException(n);
+    private LinkedHashMap<Ingredient, Integer> validIngredients(@NotNull ASTNode addNode) {
+        return addNode.children().stream()
+                .map(n -> {
+                    if (!symbolTable.isDeclared(n))
+                        throw new UndefinedVarException(n);
 
-                        Assignment assignment = symbolTable.get(n);
+                    Assignment assignment = symbolTable.get(n);
 
-                        System.out.println(n.getValue());
+                    System.out.println(n.getValue());
 
-                        if (assignment instanceof Ingredient ingredient)
-                            return Map.entry(ingredient, doOperation(n.left()));
+                    int quantity = doOperation(n.left());
 
-                        throw new PizzaDefinitionException(n, Expressions.INGREDIENT_VAR);
-                    })
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-        } catch (IllegalStateException e) {
-            throw IllegalDeclarationException.addingIngredientError(addNode);
-        }
+                    if (quantity<= 0)
+                        throw new IllegalDefinitionException(
+                                assignment,
+                                n.getPosition(),
+                                "quantity of ingredients must be greater that zero");
+
+                    if (assignment instanceof Ingredient ingredient)
+                        return Map.entry(ingredient, quantity);
+
+                    throw new IllegalDefinitionException(n, Expressions.INGREDIENT_VAR);
+                })
+                .peek(e -> {
+
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
 
     private int doOperation(@NotNull ASTNode operationNode) {
@@ -181,8 +186,7 @@ public class SemanticAnalyzer {
             case MULTIPLY -> doOperation(operationNode.left()) * doOperation(operationNode.right());
             case DIVIDE -> doOperation(operationNode.left()) / doOperation(operationNode.right());
             case NUMBER -> Integer.parseInt(operationNode.getValue().toString());
-            default -> throw new RuntimeException("Could not match operation %s"
-                    .formatted(operationNode.getValue()));
+            default -> throw new InvalidArithmeticOperationException(operationNode.getType());
         };
     }
 

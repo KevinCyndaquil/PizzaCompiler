@@ -28,13 +28,13 @@ public enum Expressions {
     MULTIPLY,
     DIVIDE;
 
-    public static Expressions cast(@NotNull Lexemes lexeme) {
+    public static @NotNull Expressions cast(@NotNull Lexemes lexeme) {
         return switch (lexeme) {
             case PLUS -> PLUS;
             case MINUS -> MINUS;
             case MULTIPLY -> MULTIPLY;
             case DIVIDE -> DIVIDE;
-            default -> null;
+            default -> throw new RuntimeException("Unexpected lexeme to cast " + lexeme);
         };
     }
 }

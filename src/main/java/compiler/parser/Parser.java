@@ -27,7 +27,7 @@ public class Parser {
 
         this.tokens = tokens;
         this.nextTokenPosition = 0;
-        this.currentCodePosition = new Position();
+        this.currentCodePosition = new Position(program);
     }
 
     public ASTNode parse() {
