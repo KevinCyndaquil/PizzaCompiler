@@ -22,7 +22,7 @@ public class Circle {
         return new Circle(radius + radiusToAdd, center);
     }
 
-    public Point generateEdgePoint() {
+    public Point generateRandomEdgePoint() {
         Random random = new Random();
 
         double theta = 2 * Math.PI * random.nextDouble();
@@ -33,7 +33,7 @@ public class Circle {
         return new Point(x, y);
     }
 
-    public List<Point> generateRangePoints(int r1, int r2, int nPoints) {
+    public List<Point> generateRandomRangedPoints(int r1, int r2, int nPoints) {
         if (r1 > this.radius || r2 > this.radius)
             throw new RuntimeException("interval radius is greater than radius");
 

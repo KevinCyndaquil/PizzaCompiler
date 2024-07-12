@@ -3,7 +3,7 @@ package language.types;
 import compiler.parser.ASTNode;
 import compiler.parser.Expressions;
 import compiler.semantic.ImageNotSquaredException;
-import program.Program;
+import program.PizzaCodeSource;
 import compiler.semantic.InvalidPathException;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -66,13 +66,13 @@ public class Ingredient extends Assignment {
     /**
      * Checks if the path provided could be a directory.
      * The method checks if the path is a compiler resource reference (this means the resource that
-     * the code is trying to access is in the resource of this program - the compiler program -).
+     * the code is trying to access is in the resource of this sourceCodePath - the compiler sourceCodePath -).
      * If it is not a compiler resource, then it could be an absolute or relative path.
      * @return A BufferedImage that contains the canvas read if all went good.
      */
     protected BufferedImage readImageInDirectory() {
         try {
-            Program program = (Program) pathNode.root().getValue();
+            PizzaCodeSource program = (PizzaCodeSource) pathNode.root().getValue();
             Path path = Paths.get(pathNode.getValue().toString());
 
             try (FileInputStream input = new FileInputStream(program.getResource(path))) {

@@ -1,7 +1,7 @@
 package compiler.parser;
 
 import compiler.lexical.Token;
-import language.util.Position;
+import language.util.CodePosition;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -15,39 +15,55 @@ import java.util.List;
  * Defines a root of the ASTNode (Abstract Syntax Tree).
  */
 public class ASTNode {
-    @Getter protected Object value;
-    @Getter protected final @NotNull Position position;
+    @Getter
+    protected Object value;
+    @Getter
+    protected final @NotNull CodePosition position;
+    @Getter
+    protected final @NotNull Expressions type;
 
-    @Getter protected final @NotNull Expressions type;
-    @Getter protected ASTNode father;
+    @Getter
+    protected ASTNode father;
     private final List<ASTNode> children = new ArrayList<>();
 
-    public ASTNode(@NotNull Expressions type,
-                   @NotNull Position position) {
+    protected ASTNode(@NotNull Expressions type, @NotNull Object value, @NotNull CodePosition position) {
         this.type = type;
-        this.value = type.name();
+        this.value = value;
         this.position = position;
+    }
+
+    public ASTNode(@NotNull Expressions type,
+                   @NotNull CodePosition position) {
+        this(type, type.name(), position);
     }
 
     public ASTNode(@NotNull Expressions type,
                    @NotNull Token token,
-                   @NotNull Position position) {
-        this.type = type;
-        this.value = token.value().toLowerCase();
-        this.position = position;
+                   @NotNull CodePosition position) {
+        this(type, token.value().toLowerCase(), position);
     }
 
+    /**
+     * @return all node's children.
+     */
     public @Unmodifiable List<ASTNode> children() {
         return children;
     }
 
-    protected void add(ASTNode node) {
-        children.add(node);
-        node.father = this;
+    /**
+     * Adds a child to this node, at the same time, the node provides by parameter will become the child
+     * of this object, having this node as its father.
+     *
+     * @param child the node object to be added as a child of this node.
+     */
+    protected void add(ASTNode child) {
+        children.add(child);
+        child.father = this;
     }
 
     /**
      * Checks if this node is at least one of the types given.
+     *
      * @param expressions the types to be compared.
      * @return true if there is one coincidence, else false.
      */
@@ -59,6 +75,7 @@ public class ASTNode {
 
     /**
      * Checks if there is a root in this node that has the Expression type given.
+     *
      * @param type the expression type to be found.
      * @return a list with all nodes that has the type given, empty if there is not any with that
      * characteristic.
@@ -76,7 +93,7 @@ public class ASTNode {
     }
 
     /**
-     * @return the first son.
+     * @return the first child.
      * @throws EmptyASTException if this node does not have roots.
      */
     public @NotNull ASTNode left() throws EmptyASTException {
@@ -86,7 +103,7 @@ public class ASTNode {
     }
 
     /**
-     * @return the second son.
+     * @return the second child.
      * @throws EmptyASTException if this node does not have at least two roots.
      */
     public @NotNull ASTNode right() throws EmptyASTException {
@@ -96,12 +113,14 @@ public class ASTNode {
     }
 
     /**
-     * @return the top root in this node.
+     * @return the top father in this node.
      */
     public @NotNull ASTNode root() {
         ASTNode current = this;
 
-        while (current.father != null) {current = current.father; }
+        while (current.father != null) {
+            current = current.father;
+        }
         return current;
     }
 

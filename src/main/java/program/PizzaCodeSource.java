@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Getter
-public class Program {
+public class PizzaCodeSource {
     private final Path path;
     private final String name;
     private final String root;
@@ -26,7 +26,9 @@ public class Program {
     private static final Path programResourceFolder = Paths.get("ingredients");
     private static final Path relativeResourceFolder = Paths.get("resources");
 
-    public Program(@NotNull File file) {
+    private final boolean showProcess;
+
+    public PizzaCodeSource(@NotNull File file, boolean showProcess) {
         try {
             this.file = new FileReader(file);
         } catch (FileNotFoundException e) {
@@ -38,11 +40,12 @@ public class Program {
         this.path = Paths.get(file.getPath());
         this.name = path.getFileName().toString();
         this.root = path.getParent().toString();
+        this.showProcess = showProcess;
 
         checkExtension();
     }
 
-    public Program(@NotNull String code) {
+    public PizzaCodeSource(@NotNull String code) {
         try {
             File temporaryFile = File.createTempFile("aux_program", ".pf");
 
@@ -55,6 +58,7 @@ public class Program {
             this.path = Paths.get(temporaryFile.getPath());
             this.name = path.getFileName().toString();
             this.root = path.getParent().toString();
+            this.showProcess = false;
 
             checkExtension();
         } catch (IOException e) {
@@ -64,35 +68,41 @@ public class Program {
 
     /**
      * This method does the compilation of code in its object.
-     * When the method compiles first does the lexical analyzer to obtain tokens (named tokenization
+     * When the method compiles first does the lexical analyzer to get tokens (named tokenization
      * of code).
-     * Then does the semantic analysis (named parsing too) when doing this, obtain the program's
-     * AST node (abstract syntax tree) containing the correct struct of this program.
+     * Then does the semantic analysis (named parsing too) when doing this, get the sourceCodePath's
+     * AST node (abstract syntax tree) containing the correct struct of this sourceCodePath.
      * Finally, does the semantic analysis, checking the correct use of each variable or instruction.
      * @return a list with the instructions to be executed.
      */
     public SemanticAnalyzer.Intermediate compile() {
-        try (BufferedReader reader = new BufferedReader(file)) {
-
-            LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(reader, this);
+        try {
+            LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(this);
             List<Token> tokens = lexicalAnalyzer.analyze();
 
-            if (!tokens.isEmpty())
-                System.out.printf("\n\n%s\n----TOKENS----%n", path);
-            tokens.forEach(System.out::println);
+            if (showProcess) {
+                if (!tokens.isEmpty())
+                    System.out.printf("\n\n%s\n----TOKENS----%n", path);
+                tokens.forEach(System.out::println);
+            }
 
             Parser parser = new Parser(this, tokens);
             ASTNode programNode = parser.parse();
 
-            System.out.printf("\n\n%s\n----PROGRAM ASTNode----%n", path);
-            System.out.println(programNode);
+
+            if (showProcess) {
+                System.out.printf("\n\n%s\n----PROGRAM ASTNode----%n", path);
+                System.out.println(programNode);
+            }
 
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(programNode);
             var intermediate = semanticAnalyzer.analyze();
 
-            if (!intermediate.instructions.isEmpty())
-                System.out.printf("\n\n%s\n----SEMANTIC----%n", path);
-            intermediate.instructions.forEach(System.out::println);
+            if (showProcess) {
+                if (!intermediate.instructions.isEmpty())
+                    System.out.printf("\n\n%s\n----SEMANTIC----%n", path);
+                intermediate.instructions.forEach(System.out::println);
+            }
 
             return intermediate;
         } catch (IOException e) {
@@ -103,8 +113,8 @@ public class Program {
 
     /**
      * Checks if the path provided is absolute or not, that means, the path could be a root
-     * path (for example, c:\\users\\...) or relative to the program (for example, a resource named
-     * foto.png that is in a resources folder next to the source path of the code program).
+     * path (for example, c:\\users\\...) or relative to the sourceCodePath (for example, a resource named
+     * foto.png that is in a resources folder next to the source path of the code sourceCodePath).
      * Finally, the method adds the root path if the path provided is relative, adding the resource
      * folder, otherwise, returns the absolute path as it is.
      *
@@ -120,14 +130,14 @@ public class Program {
 
     /**
      * The method checks if the path is a compiler resource reference (this means the resource that
-     * the code is trying to access is in the resource of this program - the compiler program - inside
+     * the code is trying to access is in the resource of this sourceCodePath - the compiler sourceCodePath - inside
      * the ingredients folder).
      * If it is not a compiler resource, then it could be an absolute or relative path.
      *
      * @return A BufferedImage that contains the canvas read if all went good.
      */
     public @NotNull File getResource(@NotNull Path path) throws URISyntaxException {
-        URL url = Program.class.getClassLoader()
+        URL url = PizzaCodeSource.class.getClassLoader()
                 .getResource(programResourceFolder.resolve(path).toString());
 
         return url == null ? new File(generateURI(relativeResourceFolder.resolve(path))) : new File(url.toURI());
@@ -135,13 +145,13 @@ public class Program {
 
     /**
      * The method checks if the path is a compiler resource reference (this means the resource that
-     * the code is trying to access is in the resource of this program - the compiler program -).
+     * the code is trying to access is in the resource of this sourceCodePath - the compiler sourceCodePath -).
      * If it is not a compiler resource, then it could be an absolute or relative path.
      *
      * @return A BufferedImage that contains the canvas read if all went good.
      */
     public @NotNull File getFile(@NotNull Path path) throws URISyntaxException {
-        URL url = Program.class.getClassLoader()
+        URL url = PizzaCodeSource.class.getClassLoader()
                 .getResource(path.toString());
 
         return url == null ? new File(generateURI(path)) : new File(url.toURI());

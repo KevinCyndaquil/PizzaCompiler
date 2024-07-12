@@ -53,7 +53,7 @@ public class Topping extends Pizza.Topping {
                 .toList();
 
         quantities.forEach(d -> {
-            circle.generateRangePoints(
+            circle.generateRandomRangedPoints(
                             minRadius + divRadius * (rows -1),
                             divRadius * rows,
                             d)

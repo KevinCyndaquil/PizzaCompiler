@@ -2,7 +2,7 @@ package compiler.semantic;
 
 import compiler.parser.ASTNode;
 import compiler.parser.Expressions;
-import program.Program;
+import program.PizzaCodeSource;
 import language.*;
 import language.Make;
 import language.types.Assignment;
@@ -54,14 +54,14 @@ public class SemanticAnalyzer {
     }
 
     private void analyzeInclude(@NotNull ASTNode includeNode) {
-        Program sourceProgram = (Program) programNode.getValue();
+        PizzaCodeSource sourceProgram = (PizzaCodeSource) programNode.getValue();
         Path path = Paths.get(includeNode.left().getValue().toString() + ".pf");
 
         if (path.getFileName().equals(sourceProgram.getPath().getFileName()))
             throw InvalidPathException.recursive(includeNode.left());
 
         try {
-            Program includeProgram = new Program(sourceProgram.getFile(path));
+            PizzaCodeSource includeProgram = new PizzaCodeSource(sourceProgram.getFile(path), false);
 
             Intermediate include = includeProgram.compile();
             //add each instruction and symbol
@@ -199,14 +199,14 @@ public class SemanticAnalyzer {
      * Contains the output of semantic analyzer process.
      */
     public static class Intermediate {
-        public Program program;
+        public PizzaCodeSource program;
         public @Unmodifiable LinkedHashSet<Instruction> instructions;
         public SymbolTable symbols;
 
         public Intermediate(@NotNull ASTNode programNode,
                             @Unmodifiable LinkedHashSet<Instruction> instructions,
                             SymbolTable symbols) {
-            this.program = (Program) programNode.getValue();
+            this.program = (PizzaCodeSource) programNode.getValue();
             this.instructions = instructions;
             this.symbols = symbols;
         }

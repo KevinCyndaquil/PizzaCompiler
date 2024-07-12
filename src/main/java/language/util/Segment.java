@@ -19,6 +19,6 @@ public class Segment {
 
     @Override
     public String toString() {
-        return "(%s, %s) to (%s, %s)".formatted(a.x, a.y, b.x, b.y);
+        return "Segment(A(%s, %s), B(%s, %s))".formatted(a.x, a.y, b.x, b.y);
     }
 }

@@ -2,8 +2,9 @@ package compiler.parser;
 
 import compiler.lexical.Lexemes;
 import compiler.lexical.Token;
-import program.Program;
-import language.util.Position;
+import org.jetbrains.annotations.Unmodifiable;
+import program.PizzaCodeSource;
+import language.util.CodePosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,31 +18,27 @@ import java.util.List;
  * Tree (AST) that captures the hierarchical relationships between elements in the input.
  */
 public class Parser {
-    private final Program program;
     private final List<Token> tokens;
     private int nextTokenPosition;
-    private Position currentCodePosition;
+    private CodePosition currentCodePosition;
 
-    public Parser(Program program, List<Token> tokens) {
-        this.program = program;
+    private final ASTNode programNode;
 
+    public Parser(@NotNull PizzaCodeSource program, List<Token> tokens) {
         this.tokens = tokens;
         this.nextTokenPosition = 0;
-        this.currentCodePosition = new Position(program);
-    }
-
-    public ASTNode parse() {
-        return parseStatement();
+        this.currentCodePosition = new CodePosition(program.getPath());
+        this.programNode = new ASTNode(
+                Expressions.PROGRAM,
+                program,
+                currentCodePosition);
     }
 
     /**
      * Starts parsing all statements.
-     * @return the program node.
+     * @return the sourceCodePath node.
      */
-    public ASTNode parseStatement() {
-        ASTNode programNode = new ASTNode(Expressions.PROGRAM, currentCodePosition);
-        programNode.value = program;
-
+    public @Unmodifiable ASTNode parse() throws ExpressionNotInterpretedException {
         do {
             Token currentToken = nextToken();
             programNode.add(switch (currentToken.type()) {
@@ -57,7 +54,8 @@ public class Parser {
     }
 
     /**
-     * Parse the including of libraries in this program.
+     * Parse the including of libraries in this sourceCodePath.
+     *
      * @return include node.
      */
     private @NotNull ASTNode parseInclude() {
@@ -72,6 +70,7 @@ public class Parser {
 
     /**
      * Starts parsing the definition of assignments in this language.
+     *
      * @return define node.
      */
     private @NotNull ASTNode parseDefine() {
@@ -88,6 +87,7 @@ public class Parser {
 
     /**
      * Parse an ingredient definition.
+     *
      * @return ingredient node.
      */
     private @NotNull ASTNode parseIngredient() {
@@ -110,6 +110,7 @@ public class Parser {
 
     /**
      * Parse the new size of ingredient's image.
+     *
      * @return the resize node.
      */
     private @NotNull ASTNode parseResize() {
@@ -125,6 +126,7 @@ public class Parser {
 
     /**
      * Parse the specialty definition.
+     *
      * @return specialty node.
      */
     private @NotNull ASTNode parseSpecialty() {
@@ -151,6 +153,7 @@ public class Parser {
 
     /**
      * Parse any text between two single_quotes and if there are other texts concatenated.
+     *
      * @return the textNode.
      */
     private @NotNull ASTNode parseText() {
@@ -166,6 +169,7 @@ public class Parser {
 
     /**
      * Starts parsing a make instruction.
+     *
      * @return make node.
      */
     private @NotNull ASTNode parseMake() {
@@ -185,6 +189,7 @@ public class Parser {
 
     /**
      * Starts parsing the pizza's properties.
+     *
      * @return pizza node.
      */
     private @NotNull ASTNode parsePizza() {
@@ -209,6 +214,7 @@ public class Parser {
 
     /**
      * Starts parsing the ingredients of a pizza.
+     *
      * @return add node.
      */
     private @NotNull ASTNode parseAdd() {
@@ -225,6 +231,7 @@ public class Parser {
 
     /**
      * Parse all ingredients added to a pizza.
+     *
      * @return ingredient literal node.
      */
     private @NotNull ASTNode parsePizzaIngredients() {
@@ -243,6 +250,7 @@ public class Parser {
 
     /**
      * Parse the specialties of a pizza.
+     *
      * @return of node.
      */
     private @NotNull ASTNode parseOf() {
@@ -267,6 +275,7 @@ public class Parser {
      * If there is not '*' or '/' lexeme after the number lexeme, then it returns that number
      * node read, else it creates the multiplication or division node checking if the second
      * lexeme could be a multiplication or division too.
+     *
      * @return number node or mul or div node.
      */
     private @NotNull ASTNode parseMuldivOperation() {
@@ -296,6 +305,7 @@ public class Parser {
      * parseMuldivOperation, else returns a sum or minus operation node that could contain
      * mul or div operation.
      * The operations returned by this method are already ordered.
+     *
      * @return a number node or operation node.
      */
     private @NotNull ASTNode parsePlusminusOperation() {
@@ -315,6 +325,7 @@ public class Parser {
 
     /**
      * Parse a save as instruction.
+     *
      * @return save node.
      */
     private @NotNull ASTNode parseSave() {
@@ -329,6 +340,7 @@ public class Parser {
 
     /**
      * Check if the next token is of any Lexeme given without going to the next token.
+     *
      * @param expectedLexeme the lexemes to be compared.
      * @return true if at least one lexeme is equals to the next token, else false.
      */
@@ -352,20 +364,20 @@ public class Parser {
             Token currentToken = tokens.get(nextTokenPosition++);
             currentCodePosition = currentToken.position();
             return currentToken;
-        }
-        else throw new RuntimeException("The tokens ran out unexpectedly");
+        } else throw new RuntimeException("The tokens ran out unexpectedly");
     }
 
     /**
      * Validates if one of the requested lexemes next to the current lexeme, if true the method
      * calls and returns nextToken() method, if there is not anyone, the method throws an
      * ExpectedLexemeException with information about error.
+     *
      * @param expectedLexeme an array with the lexemes requested.
      * @return the next token with one of the lexemes requested.
      * @throws RuntimeException if the method does not find any of the requested lexemes after the
-     * current token.
+     *                          current token.
      */
-    private @NotNull Token expected(Lexemes... expectedLexeme) throws RuntimeException {
+    private @NotNull Token expected(Lexemes... expectedLexeme) throws ExpectedLexemeException {
         if (are(expectedLexeme))
             return nextToken();
         throw new ExpectedLexemeException(currentToken(), expectedLexeme);
@@ -374,6 +386,7 @@ public class Parser {
     /**
      * Checks if the requested tokens are next to the current token, if true the method calls and
      * returns the nextToken() method, otherwise, return null.
+     *
      * @param askedLexemes an array with the lexemes requested.
      * @return the next token with one of the lexemes requested, or null if there is not anyone.
      */

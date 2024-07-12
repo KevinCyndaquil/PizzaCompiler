@@ -1,8 +1,8 @@
 package compiler.lexical;
 
-import language.util.Position;
+import language.util.CodePosition;
 import org.jetbrains.annotations.NotNull;
-import program.Program;
+import program.PizzaCodeSource;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,9 +18,8 @@ import java.util.Objects;
  */
 
 public class LexicalAnalyzer {
-    private final Program program;
-    private final List<String> code = new ArrayList<>();
-    private final Position currentPosition;
+    private final List<String> codeLines;
+    private final CodePosition currentPosition;
 
     private final List<Token> tokens = new ArrayList<>();
     private Token lastToken;
@@ -31,28 +30,38 @@ public class LexicalAnalyzer {
     private char currentChar = '\0';
 
     /**
-     * If the analyzer is parsing a text
+     * If the analyzer is parsing a text.
      */
     private boolean isParsingText = false;
 
-    public LexicalAnalyzer(@NotNull BufferedReader reader, Program program) throws IOException {
-        for(String line = reader.readLine(); line != null; line = reader.readLine()) {
-            code.add(line);
+    /**
+     * Instance a Lexical Analyzer, ready to start.
+     * @param source object with source code information.
+     * @throws IOException if the file associated with the source could not be open or read.
+     */
+    public LexicalAnalyzer(@NotNull PizzaCodeSource source) throws IOException {
+        try (BufferedReader reader = new BufferedReader(source.getFile())) {
+            this.codeLines = reader.lines()
+                    .toList();
+            this.currentPosition = new CodePosition(source.getPath());
         }
-        this.program = program;
-        this.currentPosition = new Position(program);
     }
 
+    /**
+     * Does an analysis for each code line, checking if characters wrote on code are in alphabet defined in
+     * Lexemes enum class.
+     * @return a list of all tokens in this code.
+     */
     public List<Token> analyze() {
-        code.forEach(input -> {
-            currentPosition.x = 0;
+        codeLines.forEach(input -> {
+            currentPosition.x = 0; //restart X position,
 
             while (currentPosition.x < input.length()) {
                 currentChar = input.charAt(currentPosition.x);
 
                 if (currentChar == '/')
                     if (currentPosition.x < (input.length() - 1))
-                        if (input.charAt(currentPosition.x + 1) == '/')
+                        if (input.charAt(currentPosition.x + 1) == '/') //if starts a commented line
                             break;
 
                 if (Character.isWhitespace(currentChar)) checkWhitespace();
@@ -62,7 +71,7 @@ public class LexicalAnalyzer {
                 else checkSpecialChar(input);
             }
 
-            currentPosition.y++;
+            currentPosition.y++; //finally, starts with the next line
         });
 
         return tokens;
@@ -102,7 +111,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsNumber(@NotNull String input) {
-        Position lexemePosition = new Position(currentPosition, program);
+        CodePosition lexemePosition = currentPosition.create();
         StringBuilder value = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -118,7 +127,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsKeywordOrLiteral(@NotNull String input) {
-        Position lexemePosition = currentPosition.create();
+        CodePosition lexemePosition = currentPosition.create();
         StringBuilder value = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -134,7 +143,7 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsText(@NotNull String input) {
-        Position lexemePosition = currentPosition.create();
+        CodePosition lexemePosition = currentPosition.create();
         StringBuilder text = new StringBuilder();
 
         while (currentPosition.x < input.length() &&
@@ -153,11 +162,13 @@ public class LexicalAnalyzer {
     }
 
     private @NotNull Token lexemeAsSpecialChar() {
-        Position lexemePosition = currentPosition.create();
+        CodePosition lexemePosition = currentPosition.create();
         Lexemes lexeme = Lexemes.get(currentChar);
 
         if (Objects.isNull(lexeme))
-            throw new CharUnrecognizedException(currentChar, lexemePosition);
+            throw new IllegalArgumentException(
+                    "Character '%s' is not recognized, at %s"
+                            .formatted(currentChar, lexemePosition));
 
         if (lexeme == Lexemes.SINGLE_QUOTE && lastToken != null)
             if (!lastToken.is(Lexemes.TEXT))

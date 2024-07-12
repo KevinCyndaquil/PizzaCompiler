@@ -1,17 +1,15 @@
 package language.types;
 
 import compiler.parser.ASTNode;
-import language.util.Drawable;
-import language.util.Ingredible;
-import language.util.Specializable;
+import language.util.*;
 import program.DefaultColors;
-import language.util.Circle;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 
 public class Pizza extends Assignment implements Drawable, Ingredible, Specializable {
     private static int index = 0;
@@ -142,5 +140,43 @@ public class Pizza extends Assignment implements Drawable, Ingredible, Specializ
     @Override
     public int hashCode() {
         return imageName == null ? 0 : imageName.hashCode();
+    }
+
+    public static class Sauce extends Topping {
+        public Sauce(@NotNull Pizza pizza) {
+            super(pizza);
+        }
+
+        @Override
+        public void draw() {
+            graphics.setColor(DefaultColors.SAUCE.getColor());
+            fillCircle(size.getCircle().resize(-50));
+        }
+    }
+
+    public static class Cheese extends Topping {
+        public Cheese(@NotNull Pizza pizza) {
+            super(pizza);
+        }
+
+        @Override
+        public void draw() {
+            List<Segment> segments = new ArrayList<>();
+            Circle circle = size.getCircle().resize(-55);
+
+            graphics.setColor(DefaultColors.BURNED_CHEESE.getColor());
+            fillCircle(circle);
+
+            for (int i = 0; i <= 400; i++) {
+                segments.add(new Segment(
+                        circle.generateRandomEdgePoint(),
+                        circle.generateRandomEdgePoint()));
+            }
+
+            graphics.setStroke(new BasicStroke(10.0f));
+            graphics.setColor(DefaultColors.CHEESE.getColor());
+            segments.forEach(this::drawSegment);
+            graphics.setStroke(new BasicStroke(1.0f));
+        }
     }
 }

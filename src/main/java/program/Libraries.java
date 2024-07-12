@@ -16,14 +16,14 @@ import java.util.Objects;
 public enum Libraries {
     BASIC_MENU(Objects.requireNonNull(Libraries.class.getClassLoader().getResource("basicmenu.pf")));
 
-    private final Program program;
+    private final PizzaCodeSource program;
 
     Libraries(@NotNull URL fileURL) {
         System.out.println(fileURL);
 
         try {
             File file = new File(fileURL.toURI());
-            this.program = new Program(file);
+            this.program = new PizzaCodeSource(file, false);
         } catch (URISyntaxException e) {
             throw new RuntimeException("URL provided by %s is not available. Cause: %s"
                     .formatted(fileURL, e));

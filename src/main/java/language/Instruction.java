@@ -1,7 +1,7 @@
 package language;
 
 import compiler.parser.ASTNode;
-import language.util.Position;
+import language.util.CodePosition;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @Getter
 public abstract class Instruction {
-    protected final @NotNull Position declaredAt;
+    protected final @NotNull CodePosition declaredAt;
     /**
      * It's the instruction ASTNode's value.
      */

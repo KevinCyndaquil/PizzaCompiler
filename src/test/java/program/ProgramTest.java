@@ -1,10 +1,11 @@
 package program;
 
-import compiler.lexical.CharUnrecognizedException;
 import compiler.parser.ExpectedLexemeException;
 import compiler.parser.ExpressionNotInterpretedException;
 import compiler.semantic.*;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,12 +19,12 @@ class ProgramTest {
      */
     @Test
     void charUnrecognized() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 include 'basicmenu';
                 make big pizza of $MEXICANA;
                 """);
 
-        assertThrows(CharUnrecognizedException.class, program::compile);
+        assertThrows(IOException.class, program::compile);
     }
 
     /**
@@ -31,7 +32,7 @@ class ProgramTest {
      */
     @Test
     void expectedLexeme() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 include make;
                 """);
 
@@ -43,7 +44,7 @@ class ProgramTest {
      */
     @Test
     void expectedSemicolon() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 include 'basicmenu'
                 """);
 
@@ -55,7 +56,7 @@ class ProgramTest {
      */
     @Test
     void expressionNotInterpreted() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 bake big pizza of MEXICANA;
                 """);
 
@@ -67,7 +68,7 @@ class ProgramTest {
      */
     @Test
     void duplicatedDefinition() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 define ingredient NAHIDA('https://ih1.redbubble.net/image.4673018384.0305/flat,750x,075,f-pad,750x1000,f8f8f8.jpg') resize 100;
                 define ingredient NAHIDA('https://ih1.redbubble.net/image.4673018384.0305/flat,750x,075,f-pad,750x1000,f8f8f8.jpg') resize 200;
                 """);
@@ -80,7 +81,7 @@ class ProgramTest {
      */
     @Test
     void imageNotSquared() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 define ingredient NAHIDA('https://ih1.redbubble.net/image.4673018384.0305/flat,750x,075,f-pad,750x1000,f8f8f8.jpg');
                 """);
 
@@ -92,7 +93,7 @@ class ProgramTest {
      */
     @Test
     void invalidPath() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 define ingredient NAHIDA('https://genshin.com/nahida.png');
                 """);
 
@@ -104,7 +105,7 @@ class ProgramTest {
      */
     @Test
     void undefinedVar() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 make big pizza add PEPPERONI(10);
                 """);
 
@@ -116,7 +117,7 @@ class ProgramTest {
      */
     @Test
     void pizzaBadIngredient() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 include 'basicmenu';
                 make big pizza of PEPPERONI;
                 """);
@@ -129,7 +130,7 @@ class ProgramTest {
      */
     @Test
     void pizzaBadSpecialty() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 include 'basicmenu';
                 make big pizza add HAWAIANA(10);
                 """);
@@ -142,7 +143,7 @@ class ProgramTest {
      */
     @Test
     void pizzaBadQuantityIngredient() {
-        Program program = new Program("""
+        PizzaCodeSource program = new PizzaCodeSource("""
                 include 'basicmenu';
                 make big pizza add PEPPERONI(0);
                 """);

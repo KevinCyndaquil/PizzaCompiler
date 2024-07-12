@@ -3,7 +3,7 @@ package compiler.semantic;
 import compiler.parser.ASTNode;
 import compiler.parser.Expressions;
 import language.types.Assignment;
-import language.util.Position;
+import language.util.CodePosition;
 import org.jetbrains.annotations.NotNull;
 
 public class IllegalDefinitionException extends RuntimeException {
@@ -16,7 +16,7 @@ public class IllegalDefinitionException extends RuntimeException {
                         expected));
     }
 
-    public IllegalDefinitionException(@NotNull Assignment invalidAssignment, Position usedAt, String cause) {
+    public IllegalDefinitionException(@NotNull Assignment invalidAssignment, CodePosition usedAt, String cause) {
         super("Semantic Error: Use of %s named %s is incorrect, located at %s.%s"
                 .formatted(
                         invalidAssignment.getClass().getSimpleName(),

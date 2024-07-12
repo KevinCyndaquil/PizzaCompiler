@@ -6,6 +6,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
+/**
+ * Hash set with all assignment objects as code symbols for it.
+ * Contains variables and instructions to be executed.
+ */
 public class SymbolTable extends HashSet<Assignment> {
 
     public Assignment get(Object value) {

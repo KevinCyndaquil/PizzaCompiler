@@ -1,7 +1,7 @@
 package language.types;
 
 import compiler.parser.ASTNode;
-import language.util.Position;
+import language.util.CodePosition;
 import language.util.Circle;
 import language.util.Segment;
 import lombok.Getter;
@@ -23,10 +23,12 @@ import java.util.Objects;
 
 /**
  * This is any assignment that must provide a graphic, because, this will be painted.
+ * Must be provided its graphics object later; otherwise, it will produce a NullPointException
+ * when tries to paint an object.
  */
 @Getter
 public abstract class Assignment extends Graphics2D {
-    protected final Position declaredAt;
+    protected final CodePosition declaredAt;
     /**
      * It's the instruction ASTNode's value.
      */
@@ -35,20 +37,25 @@ public abstract class Assignment extends Graphics2D {
     @Setter protected String imageName = null;
     protected Graphics2D graphics;
 
-    public Assignment(@NotNull ASTNode assignmentNode) {
-        this.declaredAt = assignmentNode.getPosition();
-        this.name = assignmentNode.getValue();
+    /**
+     * When this assignment is declared using its node only, must be provided its graphics object later,
+     * otherwise, it will produce a NullPointException when tries to paint this object.
+     * @param node base object to instance this assignment.
+     */
+    public Assignment(@NotNull ASTNode node) {
+        this.declaredAt = node.getPosition();
+        this.name = node.getValue();
     }
 
     /**
      * If the assignment is implicit.
+     * Must be provided its graphics object later; otherwise, it will produce a NullPointException
+     * when tries to paint this object.
      */
     public Assignment() {
         this.declaredAt = null;
         this.name = null;
     }
-
-    //public abstract void draw();
 
     public void fillCircle(@NotNull Circle circle) {
         graphics.fillOval(
